@@ -1,128 +1,204 @@
-# Playwright + TypeScript practice
+# Playwright Task Tracker — Automated Testing
 
-A 100–120 minute guided lab. The local Task Tracker app is provided; your job is to test it. Start in `tests/tasks.spec.ts`. Solutions are in a separate folder so the normal test run never includes them.
+A hands-on QA automation learning project using **Playwright and TypeScript** to test a small Task Tracker web application.
 
-## Start here — 15 minutes
+The application, project setup, and initial exercises were generated with AI for educational purposes. I implemented the automated tests myself, using AI as a learning assistant for explanations, guidance, and debugging.
 
-Run these in the dev container terminal at `/workspaces/playwright-practice`:
+The goal of this project was to develop practical skills in UI automation, asynchronous JavaScript, network mocking, and test debugging.
+
+## Technologies
+
+- **Playwright** — browser automation and end-to-end testing
+- **TypeScript** — writing typed test code
+- **Node.js** — running the application and tests
+- **Docker Dev Containers** — development environment
+- **Git** — version control
+
+## Test Coverage
+
+The project contains **12 automated tests**, covering the following scenarios:
+
+| Area                  | Test scenarios                                                              |
+| --------------------- | --------------------------------------------------------------------------- |
+| Task creation         | Adding tasks using the Add button or Enter key                              |
+| Input validation      | Rejecting blank task names and clearing validation errors                   |
+| Task management       | Completing, reopening, and deleting tasks                                   |
+| Filtering             | Displaying active, completed, and all tasks                                 |
+| Empty states          | Verifying the initial empty list and the state after deleting the last task |
+| Application state     | Confirming that tasks reset after reloading the page                        |
+| Network mocking       | Mocking successful API responses and HTTP 500 errors                        |
+| Asynchronous behavior | Verifying the loading state while an API response is pending                |
+
+The tests use accessible locators, web-first assertions, reusable helper functions, and isolated browser contexts.
+
+## Project Structure
+
+```text
+.
+├── .devcontainer/
+│   └── devcontainer.json
+├── app/
+│   ├── index.html
+│   └── server.cjs
+├── tests/
+│   └── tasks.spec.ts
+├── .gitignore
+├── package.json
+├── package-lock.json
+├── playwright.config.ts
+├── tsconfig.json
+└── README.md
+```
+
+The `app/` directory contains the AI-generated Task Tracker application, while `tests/tasks.spec.ts` contains the automated tests I implemented.
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js and npm
+- A Chromium browser installed through Playwright
+
+Alternatively, the project can be opened using VS Code with Docker and the Dev Containers extension.
+
+### Installation
+
+Clone the repository and navigate into the project directory.
+
+Install dependencies:
+
+```bash
+npm ci
+```
+
+Install the Chromium browser used by Playwright:
+
+```bash
+npx playwright install chromium
+```
+
+If running in a fresh Linux environment without the necessary system dependencies, use:
+
+```bash
+npx playwright install --with-deps chromium
+```
+
+### Running Tests
+
+Run the complete test suite:
 
 ```bash
 npm test
+```
+
+Run TypeScript type checking:
+
+```bash
 npm run typecheck
 ```
 
-Expect one passing example and ten exercises marked `test.fixme` (reported as skipped). Read the example, then run just that test:
+Run a specific test by name:
 
 ```bash
-npm test -- -g "adds a task"
+npx playwright test -g "adds a task$"
 ```
 
-Playwright starts the app automatically through `webServer`. To explore it yourself, run `npm start`, forward port 3000 in VS Code's Ports panel, and open that forwarded URL. Tasks live in page memory and reset on reload. There is no login or database.
-
-Read `playwright.config.ts`: find `baseURL`, the Chromium project, screenshots, and traces. Tests run headlessly by default, so the container does not need a desktop.
-
-## Understand the example
-
-```ts
-test('adds a task', async ({ page }) => {
-  await page.goto('/');
-  await page.getByRole('textbox', { name: 'New task' }).fill('Read docs');
-  await page.getByRole('button', { name: 'Add task', exact: true }).click();
-  await expect(page.getByRole('checkbox', { name: 'Read docs' })).toBeVisible();
-});
-```
-
-- `test` registers a test; the callback describes what it does.
-- `{ page }` receives Playwright's page fixture: a browser tab in a fresh context for each test.
-- `async` makes a function return a Promise; `await` waits for an asynchronous operation to finish. Missing an `await` can let a test finish too early.
-- A locator describes how to find an element. `getByRole` uses accessible roles and names; `getByLabel('New task')` is another good option here.
-- Actions wait for elements to be actionable. Web assertions such as `toHaveText` retry until the expected state appears. Avoid `waitForTimeout` and arbitrary sleeps.
-- `beforeEach` opens the app for each test. Tests must work in any order.
-- Playwright runs TypeScript tests; `npm run typecheck` separately checks types.
-
-Replace a `test.fixme` exercise with this pattern, then fill in the actions and assertions:
-
-```ts
-test('shows an empty task list', async ({ page }) => {
-  // beforeEach already opened the app.
-  await expect(page.getByRole('listitem')).toHaveCount(0);
-});
-```
-
-## Exercises 1–2 — forms and assertions, 20 minutes
-
-1. **Empty list:** check the heading, `No tasks here.`, zero list items, and `0 active tasks` in `getByRole('status')`.
-2. **Validation:** submit spaces. Check the alert says `Enter a task name.` and no task was created. Then add a valid task and check the alert disappears.
-
-Run each test with `npm test -- -g "part of its name"`. Predict what will happen before running it.
-
-## Exercises 3–6 — state, lists, and isolation, 25 minutes
-
-3. **Complete and reopen:** add a task, use `check()` and `uncheck()`, assert `toBeChecked()` and the active count after each change.
-4. **Filters:** add two tasks and complete one. Check Active shows only the unfinished task, Completed shows only the finished one, and All shows both. Use `exact: true` for button names.
-5. **Deletion:** add two tasks; delete one and prove the other remains. Find a row with `getByRole('listitem').filter({ hasText: '...' })`, then locate its button inside that row.
-6. **Reload:** add a task, verify it exists, reload, and verify the list is empty. This app deliberately does not persist tasks.
-
-Refactor repeated input/click actions into a typed helper after you have two working tests:
-
-```ts
-import { type Page } from '@playwright/test';
-
-async function addTask(page: Page, title: string): Promise<void> {
-  await page.getByLabel('New task').fill(title);
-  await page.getByRole('button', { name: 'Add task', exact: true }).click();
-}
-```
-
-`Page` is a type, `title: string` restricts the argument, and `Promise<void>` means the async helper produces no result. Temporarily pass a number to `title` and run typecheck to see the error; then fix it.
-
-## Exercises 7–9 — network control, 20 minutes
-
-7. **Success:** before clicking Get tip, intercept `**/api/tip` with `page.route`. Fulfill it with `{ json: { tip: 'Your custom tip' } }`, then assert that exact text.
-8. **Loading:** hold the mocked response with a Promise, click Get tip, assert `Loading tip…`, then release the response and assert the final text. The solution includes this more advanced Promise pattern if you need a hint.
-9. **Failure:** fulfill the request with status 500; check `Could not load tip. Try again.`. Set up routes before triggering requests.
-
-## Debugging — 15 minutes
-
-Change a text assertion to an incorrect value. Run that test and read its error: expected value, received value, and locator call log. Then inspect the failure screenshot and trace:
+Open the Playwright HTML report:
 
 ```bash
 npm run report
 ```
 
-Forward port 9323 and open the report URL. Click the failed test and its trace attachment. The trace lets you inspect actions, DOM snapshots, and network activity. Fix the assertion and rerun the test.
+### Running the Application
 
-For interactive exploration:
+The application starts automatically during testing through Playwright's `webServer` configuration.
 
-```bash
-npm run test:ui
-```
-
-Forward port 8080 and open it in your browser. `npm run test:debug` requires a graphical display; use the browser-based UI in this headless container.
-
-## Independent challenge — 10 minutes
-
-10. Add a task by pressing Enter instead of clicking Add task. Assert the new checkbox appears and the input is empty. Then add your own test: deleting the last task should restore the empty message.
-
-## Finish
+To run it manually:
 
 ```bash
-npm run typecheck
-npm test
+npm start
 ```
 
-You are finished when all 11 tests pass with no skipped exercises, your extra challenge passes, and you can explain why tests do not share tasks, why actions need `await`, and why locators/assertions are preferable to fixed waits.
+The application runs on port `3000`.
 
-Compare with `solutions/tasks.spec.ts` only after attempting the exercises:
+When using a Dev Container, forward the port through VS Code to access the application in your browser.
 
-```bash
-npm run test:solutions
-```
+## Testing Approach
 
-The solution suite uses a separate report run, so it replaces the latest HTML report. For later practice, add data-driven validation tests, a second browser, API tests with the `request` fixture, or CI. Page objects and saved login state are useful later when a larger app needs them.
+### UI Automation
 
-Official references: [Writing tests](https://playwright.dev/docs/writing-tests), [locators](https://playwright.dev/docs/locators), [network mocking](https://playwright.dev/docs/mock), [Trace Viewer](https://playwright.dev/docs/trace-viewer).
+Tests primarily use Playwright's accessible locators, such as `getByRole()` and `getByLabel()`, to interact with the application.
 
-## After rebuilding the container
+Assertions use Playwright's automatic retry behavior to verify the expected UI state without relying on fixed delays.
 
-Dependencies are already installed for this session. In a fresh container, restore them with `npm ci` and `npx playwright install --with-deps chromium` before starting the lab. The lockfile pins the package versions used here.
+### Test Isolation
+
+Each test runs in a fresh browser context. A `beforeEach` hook navigates to the application before every test.
+
+The Task Tracker stores tasks in memory rather than in a database, so tasks do not persist after a page reload.
+
+### Reusable Helpers
+
+A typed `addTask()` helper reduces duplicated code when creating tasks across different tests.
+
+### Network Mocking
+
+The tests intercept requests to `/api/tip` using `page.route()` to simulate:
+
+- Successful API responses
+- Delayed responses and loading states
+- HTTP 500 server errors
+
+This allows different network scenarios to be tested without depending on a live external API.
+
+### Debugging
+
+During development, I practiced debugging intentionally failing tests using Playwright's error messages, HTML reports, and Trace Viewer.
+
+These tools help identify failed assertions, inspect browser state, and understand the sequence of actions leading to a failure.
+
+## Results
+
+**Final local verification:**
+
+- 12 of 12 tests passing in Chromium
+- TypeScript type checking successful
+- No skipped tests
+
+## What I Learned
+
+This project helped me develop a better understanding of:
+
+- Structuring automated UI tests
+- Selecting elements using reliable locators
+- Writing meaningful assertions
+- Working with `async`, `await`, and Promises
+- Understanding why missing `await` can cause unreliable tests
+- Creating reusable test helpers with TypeScript
+- Intercepting and mocking HTTP requests
+- Testing asynchronous loading and error states
+- Debugging failures using Playwright's built-in tools
+
+## Scope and Limitations
+
+This is a learning project rather than a production application.
+
+The Task Tracker does not include authentication, persistent storage, or a database. Testing is currently configured for Chromium only.
+
+Future areas of practice include API testing with Playwright's `request` fixture, authentication flows, persistent test data, and CI/CD integration.
+
+## AI Usage Disclosure
+
+The Task Tracker application, development setup, and original exercise instructions were generated with AI.
+
+I wrote and completed the Playwright test suite as a guided learning exercise. AI was used to explain unfamiliar concepts, provide hints, review implementations, and assist with debugging.
+
+The purpose of this repository is to demonstrate my progress in learning QA automation, rather than to present the application itself as an independently developed product.
+
+## References
+
+- [Playwright Documentation](https://playwright.dev/docs/intro)
+- [Writing Tests](https://playwright.dev/docs/writing-tests)
+- [Locators](https://playwright.dev/docs/locators)
+- [Network Mocking](https://playwright.dev/docs/mock)
+- [Trace Viewer](https://playwright.dev/docs/trace-viewer)
