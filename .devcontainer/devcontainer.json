@@ -1,0 +1,7 @@
+{
+  "name": "Playwright Practice",
+  "image": "mcr.microsoft.com/devcontainers/typescript-node:5-24-trixie",
+  "workspaceMount": "source=${localWorkspaceFolder},target=/workspaces/playwright-practice,type=bind",
+  "workspaceFolder": "/workspaces/playwright-practice",
+  "remoteUser": "node"
+}

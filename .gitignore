@@ -1,0 +1,11 @@
+node_modules/
+playwright-report/
+test-results/
+
+solutions/
+
+# Local environment variables and secrets
+.env
+.env.*
+!.env.example
+
